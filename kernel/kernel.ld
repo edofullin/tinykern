@@ -1,5 +1,7 @@
-OUTPUT_ARCH( "riscv" )
-ENTRY( _entry )
+OUTPUT_ARCH("riscv")
+ENTRY(_entry)
+
+
 
 SECTIONS
 {
@@ -10,7 +12,7 @@ SECTIONS
   . = 0x80000000;
 
   .text : {
-    *(.text .text.*)
+    *(.text.startup .text.*)
     . = ALIGN(0x1000);
     PROVIDE(etext = .);
   }
