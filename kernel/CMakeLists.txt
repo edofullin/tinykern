@@ -1,5 +1,6 @@
 set(K_LINK_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/kernel.ld)
 set(K_LINK_OPTS "-nostdlib")
+set(K_C_FLAGS "-mcmodel=medany")
 
 file(GLOB k_srcs
     "*.c"
@@ -9,7 +10,7 @@ file(GLOB k_srcs
 add_executable(kImage ${k_srcs})
 
 target_link_libraries(kImage -T${K_LINK_SCRIPT} ${K_LINK_OPTS})
-set_target_properties(kImage PROPERTIES LINK_DEPENDS ${K_LINK_SCRIPT})
+set_target_properties(kImage PROPERTIES LINK_DEPENDS ${K_LINK_SCRIPT} COMPILE_FLAGS ${K_C_FLAGS})
 
 add_custom_target(qemu
                   DEPENDS kImage
