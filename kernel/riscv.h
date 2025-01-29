@@ -28,6 +28,22 @@ static inline uint64 w_mstatus(uint64 s) {
     return x;
 }
 
+// Supervisor Interrupt Enable
+#define SIE_SEIE (1L << 9) // external
+#define SIE_STIE (1L << 5) // timer
+#define SIE_SSIE (1L << 1) // software
+
+
+static inline uint64 r_sie() {
+  uint64 x;
+  asm volatile("csrr %0, sie" : "=r" (x) );
+  return x;
+}
+
+static inline void w_sie(uint64 x) {
+  asm volatile("csrw sie, %0" : : "r" (x));
+}
+
 // Supervisor status
 
 #define SSTATUS_SPP (1L << 8)  // Previous mode, 1=Supervisor, 0=User
@@ -66,7 +82,7 @@ static inline uint64 w_pmpaddr0(uint64 s) {
     return x;
 }
 
-#define PMPCFG_RWX_NAPOT 0xff
+#define PMPCFG_RWX_NAPOT 0xf
 
 static inline uint64 r_pmpcfg0() {
     uint64 x;
@@ -155,4 +171,26 @@ static inline uint64 r_time() {
   uint64 x;
   asm volatile("csrr %0, time" : "=r" (x) );
   return x;
+}
+
+// Machine Exception Delegation
+static inline uint64 r_medeleg() {
+  uint64 x;
+  asm volatile("csrr %0, medeleg" : "=r" (x) );
+  return x;
+}
+
+static inline void w_medeleg(uint64 x) {
+  asm volatile("csrw medeleg, %0" : : "r" (x));
+}
+
+// Machine Interrupt Delegation
+static inline uint64 r_mideleg() {
+  uint64 x;
+  asm volatile("csrr %0, mideleg" : "=r" (x) );
+  return x;
+}
+
+static inline void w_mideleg(uint64 x) {
+  asm volatile("csrw mideleg, %0" : : "r" (x));
 }
