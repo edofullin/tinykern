@@ -2,6 +2,4 @@
 
 #include "types.h"
 
-void panic(char* reason) {
-    while(TRUE) {}
-}
+void panic(char* reason);

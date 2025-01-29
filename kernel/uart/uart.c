@@ -1,4 +1,30 @@
 #include "uart.h"
-#include "ns16550.h"
+#include "kconfig.h"
+#include "panic.h"
 
-ns16550 dev_uarts[2];
+#include "ns16550.h"
+#include "utils/string.h" // IWYU pragma: keep
+
+ns16550 dev_uarts[NUARTS];
+
+void uart_init() {
+    // we should read devices from the dtb... hardcoded for now
+
+    ns166550_init(&dev_uarts[0], "uart0", 0x10000000L);
+}
+
+void uart_transmit(char* device_name, char* data, uint64 len) {
+
+    ns16550* dev = NULL;
+
+    for(uint32 i = 0; i < NUARTS; ++i) {
+        if(!strcmp(device_name, dev_uarts[i].name))
+            dev = &dev_uarts[i];
+    }
+
+    if(!dev) {
+        panic("device not found");
+    }
+
+    ns166550_transmit(dev, data, len);
+}
