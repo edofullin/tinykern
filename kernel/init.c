@@ -3,6 +3,7 @@
  * centry function will jump here into supervisor mode
  */
 
+#include "console.h"
 #include "riscv.h"
 #include "kconfig.h"
 
@@ -11,12 +12,12 @@
 #include "uart/ns16550.h"
 #include "uart/uart.h"
 
-extern ns16550 dev_uarts[];
-
 void kearly_init() {
     if(cpuid() == 0) {
         uart_init();
-        kprintf("tinykern is booting...");
+        kio_init();
+
+        kprintf("tinykern is booting...\n");
     }
 
     while(1) {}
