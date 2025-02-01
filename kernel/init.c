@@ -9,6 +9,7 @@
 #include "kio.h"
 #include "panic.h"
 #include "uart/uart.h"
+#include "vm.h"
 
 void kearly_init() {
     if(cpuid() == 0) {
@@ -17,6 +18,7 @@ void kearly_init() {
         kprintf("tinykern is booting\n");
 
         kalloc_init();
+        kvm_init();
     } else {
 
 

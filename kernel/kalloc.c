@@ -5,7 +5,7 @@
 #include "spinlock.h"
 
 // kreg_end set to the beginning of next page after the kernel space in kernel.ld
-extern char kreg_end[];
+extern char KERNEL_END[];
 
 void* alloc_last;
 
@@ -26,7 +26,7 @@ void* get_first_free_page() {
     struct node* curr = freelist;
 
     if(!curr)
-        panic("__func__ invoked with a empty freelist\n");
+        panic("kalloc: get_first_free_page invoked with a empty freelist\n");
 
     while(curr->next)
         curr = curr->next;
@@ -38,9 +38,9 @@ void kalloc_init() {
     spinlock_init(&ka_lock, "ka_lock");
     spinlock_acquire(&ka_lock);
 
-    kprintf("kalloc initializing at address %p\n", kreg_end);
+    kprintf("kalloc initializing at address %p\n", KERNEL_END);
     freelist = NULL;
-    alloc_last = kreg_end;
+    alloc_last = KERNEL_END;
 
     spinlock_release(&ka_lock);
 }

@@ -11,12 +11,12 @@ SECTIONS
    */
   . = 0x80000000;
 
-  PROVIDE(kreg_begin = .);
+  PROVIDE(KERNEL_BEGIN = .);
 
   .text : {
     *(.text.startup .text.*)
     . = ALIGN(0x1000);
-    PROVIDE(etext = .);
+    PROVIDE(KERNEL_TEXT_END = .);
   }
 
   .rodata : {
@@ -40,5 +40,5 @@ SECTIONS
     *(.bss .bss.*)
   }
 
-  PROVIDE(kreg_end = ALIGN(4096));
+  PROVIDE(KERNEL_END = ALIGN(4096));
 }
