@@ -11,6 +11,8 @@ SECTIONS
    */
   . = 0x80000000;
 
+  PROVIDE(kreg_begin = .);
+
   .text : {
     *(.text.startup .text.*)
     . = ALIGN(0x1000);
@@ -38,5 +40,5 @@ SECTIONS
     *(.bss .bss.*)
   }
 
-  PROVIDE(end = .);
+  PROVIDE(kreg_end = ALIGN(4096));
 }

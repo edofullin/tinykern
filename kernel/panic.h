@@ -2,4 +2,4 @@
 
 #include "types.h"
 
-void panic(char* reason);
+void panic(char* fmt, ...);

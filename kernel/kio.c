@@ -22,7 +22,7 @@ void _print_c(char c) {
 
 void _print_n(int64 i, uint32 base, bool sign) {
 
-    char buff[16];
+    char buff[16] = { 0 };
     uint64 num, j = 0;
     bool is_negative = FALSE;
     char digits[] = "0123456789abcdef";
@@ -60,14 +60,12 @@ void _print_s(char* s) {
         _print_c(*s);
 }
 
-uint32 kprintf(char* fmt, ...) {
-    va_list va;
+uint32 kfprintf(char* fmt, va_list va) {
     char c, c1;
     uint32 i = 0;
 
     spinlock_acquire(&lock);
 
-    va_start(va, fmt);
 
     for(i = 0; (c = fmt[i]) != NULL; ++i) {
         
@@ -92,7 +90,7 @@ uint32 kprintf(char* fmt, ...) {
                 _print_p((void*)va_arg(va, uint64));
                 break;
             case 'c':
-                _print_c(va_arg(va, char));
+                _print_c((unsigned char)va_arg(va, int));
                 break;
             case 's':
                 _print_s(va_arg(va, char*));
@@ -106,4 +104,13 @@ uint32 kprintf(char* fmt, ...) {
     spinlock_release(&lock);
 
     return i;
+}
+
+uint32 kprintf(char* fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+
+    kfprintf(fmt, va);
+
+    va_end(va);
 }

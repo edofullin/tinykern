@@ -6,3 +6,4 @@
 #define KERNEL_OUT_UART "uart0"
 
 #define EARLY_STACK_SIZE 1024
+#define PAGE_SIZE 4096

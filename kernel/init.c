@@ -3,23 +3,26 @@
  * centry function will jump here into supervisor mode
  */
 
-#include "console.h"
-#include "riscv.h"
-#include "kconfig.h"
 
 #include "cpu.h"
+#include "kalloc.h"
 #include "kio.h"
-#include "uart/ns16550.h"
+#include "panic.h"
 #include "uart/uart.h"
 
 void kearly_init() {
     if(cpuid() == 0) {
         uart_init();
         kio_init();
+        kprintf("tinykern is booting\n");
 
-        kprintf("tinykern is booting...\n");
+        kalloc_init();
+    } else {
+
+
     }
 
+    panic("boot complete in %d seconds\n", 10);
     while(1) {}
 }
 

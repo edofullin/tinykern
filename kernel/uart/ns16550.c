@@ -16,7 +16,7 @@ void ns166550_init(ns16550* dev, char* name, uint64 baseaddr) {
     wReg(dev, 0x0, 0x3);
     wReg(dev, 0x1, 0x0);
 
-    // exists DLAB and set len to 8bits
+    // exits DLAB and set len to 8bits
     wReg(dev, LCR, LCR_LEN_8B);
 
     // enables fifo tx
