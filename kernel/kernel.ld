@@ -14,10 +14,12 @@ SECTIONS
   PROVIDE(KERNEL_BEGIN = .);
 
   .text : {
-    *(.text.startup .text.*)
-    . = ALIGN(0x1000);
-    PROVIDE(KERNEL_TEXT_END = .);
+    *(.text.startup)
+    *(.text.*)
   }
+
+  . = ALIGN(0x1000);
+  PROVIDE(KERNEL_TEXT_END = .);
 
   .rodata : {
     . = ALIGN(16);

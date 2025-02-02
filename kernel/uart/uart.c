@@ -44,3 +44,7 @@ void uart_transmit(char* device_name, char* data, uint64 len) {
 
     ns166550_transmit(dev, data, len);
 }
+
+ns16550* get_uart_devices() {
+    return dev_uarts;
+}

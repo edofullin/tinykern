@@ -194,3 +194,14 @@ static inline uint64 r_mideleg() {
 static inline void w_mideleg(uint64 x) {
   asm volatile("csrw mideleg, %0" : : "r" (x));
 }
+
+// flush the TLB.
+static inline void sfence_vma() {
+  asm volatile("sfence.vma zero, zero");
+}
+
+static inline uint64 r_pc() {
+  uint64 pc;
+  asm volatile("auipc %0, 0" : "=r" (pc));
+  return pc;
+}
