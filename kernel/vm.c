@@ -37,6 +37,8 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
         pdi = (va >> (9*i)) & ((1 << 9) - 1);
         pte = current_pt[pdi];
 
+        // kprintf("va %p level %d pdi %d pte %p valid %d\n", va, i, pdi, pte, IS_PTE_VALID(pte));
+
         if(IS_PTE_VALID(pte)) {
             current_pt = CONV_PTE_PTA(pte);
             continue;
@@ -54,6 +56,8 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
     }
 
     pdi = (va) & ((1 << 9) - 1); // L0
+    pte = current_pt[pdi];
+    // kprintf("va %p level %d pdi %d pte %p valid %d\n", va, 0, pdi, pte, IS_PTE_VALID(pte));
 
     return &current_pt[pdi];
 }
@@ -84,7 +88,7 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
     spinlock_acquire(&k_pt_lock);
 
     do {
-        pte = vm_get_setup_pte(pt, va, TRUE); // address of PTE, creating every intermediate necessary PT
+        pte = vm_get_setup_pte(pt, curr_va, TRUE); // address of PTE, creating every intermediate necessary PT
 
         if(!pte)
             panic("vmmap: segfault\n");
@@ -97,7 +101,7 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
 
         curr_va += PAGE_SIZE;
         curr_pa += PAGE_SIZE;
-    } while(curr_va < va_last);
+    } while(curr_va <= va_last);
 
     spinlock_release(&k_pt_lock);
     kprintf("vmmap: pages %p to %p mapped from %p flags %d\n", va, va + size, pa, flags);
@@ -132,13 +136,11 @@ void kvm_init() {
     vmmap(k_pagetable, (uint64)KERNEL_TEXT_END, (uint64)KERNEL_TEXT_END, KERNEL_DATA_SIZE, PTE_R | PTE_W);
 
     kvm_map_devices();
-
-    kprintf("mapping pc=%p to %p\n", r_pc(), vm_translate_pa(k_pagetable, r_pc()));
 }
 
-void kvm_enable_paging() {
+void kvm_mmu_enable() {
 
-    kprintf("cpu%d kvm: turning on paging", cpuid());
+    kprintf("cpu%d kvm: turning on paging\n", cpuid());
     register uint64 satp = MAKE_SATP((uint64)k_pagetable, 0x0, 0x8);
 
     sfence_vma();
@@ -148,6 +150,7 @@ void kvm_enable_paging() {
     );
 
     sfence_vma();
+    kprintf("cpu%d: paging enabled\n", cpuid());
 }
 
 uint64 vm_translate_pa(pagetable pt, uint64 va) {

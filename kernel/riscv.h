@@ -64,7 +64,7 @@ static inline void w_sstatus(uint64 s) {
 
 // Supervisor Address Translation and Protection (satp) Register
 // Set to 0 to disable paging, otherwise set to top level page addr
-static inline void w_satp(uint64 val) {
+static inline __attribute__((always_inline)) void w_satp(uint64 val) {
     asm volatile("csrw satp, %0" : : "r" (val));
 }
 
@@ -204,4 +204,14 @@ static inline uint64 r_pc() {
   uint64 pc;
   asm volatile("auipc %0, 0" : "=r" (pc));
   return pc;
+}
+
+static inline void w_stvec(uint64 addr) {
+  asm volatile ("csrw stvec, %0" : : "r" (addr));
+}
+
+static inline uint64 r_scause() {
+  uint64 mc;
+  asm volatile("csrr %0, scause" : "=r" (mc));
+  return mc;
 }

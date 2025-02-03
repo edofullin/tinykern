@@ -19,7 +19,7 @@ void kearly_init() {
 
         kalloc_init();
         kvm_init();
-        kvm_enable_paging();
+        kvm_mmu_enable();
     } else {
 
 
