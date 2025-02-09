@@ -1,4 +1,4 @@
-#include "riscvconst.h"
+#include "riscv_const.h"
 #include "kconfig.h"
 
 .section .text
@@ -34,7 +34,7 @@ mtrap:
     sd t1, 0(t0) # store new time in mtimecmp
 
     # set supervisor flag
-    li t0, 0x02
+    li t0, MIP_SSIP
     csrs mip, t0 # set flag for supervisor
 
     # restore the register and unwind frame

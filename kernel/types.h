@@ -7,6 +7,7 @@
 #define int32 int
 #define int64 long
 #define ushort unsigned short
+#define uint16 ushort
 #define byte char
 
 #define bool unsigned short

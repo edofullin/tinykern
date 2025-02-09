@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "riscvconst.h"
+#include "riscv_const.h"
 
 // return core number from machine mode
 static inline uint64 r_mhartid() {
@@ -9,14 +9,6 @@ static inline uint64 r_mhartid() {
     asm volatile("csrr %0, mhartid" : "=r" (x));
     return x;
 }
-
-// Machine status (only in machine mode)
-#define MSTATUS_MPP_MASK (3L << 11)
-#define MSTATUS_MPP_M (3L << 11)
-#define MSTATUS_MPP_S (1L << 11)
-#define MSTATUS_MPP_U (0L << 11)
-#define MSTATUS_MIE (1L << 3)    // machine-mode interrupt enable.
-#define MSTATUS_SIE (1L << 1)    // machine-mode interrupt enable.
 
 static inline uint64 r_mstatus() {
     uint64 x;
@@ -30,11 +22,6 @@ static inline uint64 w_mstatus(uint64 s) {
     return x;
 }
 
-// Supervisor Interrupt Enable
-#define SIE_SEIE (1L << 9) // external
-#define SIE_STIE (1L << 5) // timer
-#define SIE_SSIE (1L << 1) // software
-
 
 static inline uint64 r_sie() {
   uint64 x;
@@ -45,14 +32,6 @@ static inline uint64 r_sie() {
 static inline __attribute__((always_inline)) void w_sie(uint64 x) {
   asm volatile("csrw sie, %0" : : "r" (x));
 }
-
-// Supervisor status
-
-#define SSTATUS_SPP (1L << 8)  // Previous mode, 1=Supervisor, 0=User
-#define SSTATUS_SPIE (1L << 5) // Supervisor Previous Interrupt Enable
-#define SSTATUS_UPIE (1L << 4) // User Previous Interrupt Enable
-#define SSTATUS_SIE (1L << 1)  // Supervisor Interrupt Enable
-#define SSTATUS_UIE (1L << 0)  // User Interrupt Enable
 
 static inline uint64 r_sstatus() {
     uint64 x;
@@ -83,8 +62,6 @@ static inline uint64 w_pmpaddr0(uint64 s) {
     asm volatile("csrw pmpaddr0, %0" : : "r" (s));
     return x;
 }
-
-#define PMPCFG_RWX_NAPOT 0xf
 
 static inline uint64 r_pmpcfg0() {
     uint64 x;
@@ -118,9 +95,6 @@ static inline void w_mepc(uint64 x)
   asm volatile("csrw mepc, %0" : : "r" (x));
 }
 
-// Machine Interrupt Enable
-#define MIE_STIE (1L << 5)  // supervisor timer
-#define MIE_MTIE (1L << 7)  // machine timer
 static inline uint64 r_mie() {
   uint64 x;
   asm volatile("csrr %0, mie" : "=r" (x) );
@@ -131,8 +105,7 @@ static inline void w_mie(uint64 x) {
   asm volatile("csrw mie, %0" : : "r" (x));
 }
 
-// Machine Environment Configuration Register
-#define MENVCFG_STCE (1L << 63L)
+
 static inline uint64 r_menvcfg() {
   uint64 x;
   asm volatile("csrr %0, menvcfg" : "=r" (x) );
@@ -142,11 +115,6 @@ static inline uint64 r_menvcfg() {
 static inline void w_menvcfg(uint64 x) {
   asm volatile("csrw menvcfg, %0" : : "r" (x));
 }
-
-// Machine Counter-Enable Register
-// The counter-enable register mcounteren is a 32-bit register that controls the availability of the hardware performance-monitoring counters to the next-lower privileged mode.
-
-#define MCOUNTEREN_TIME (1 << 1L)
 
 static inline uint64 r_mcounteren() {
   uint64 x;
