@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "riscvconst.h"
 
 // return core number from machine mode
 static inline uint64 r_mhartid() {
@@ -15,6 +16,7 @@ static inline uint64 r_mhartid() {
 #define MSTATUS_MPP_S (1L << 11)
 #define MSTATUS_MPP_U (0L << 11)
 #define MSTATUS_MIE (1L << 3)    // machine-mode interrupt enable.
+#define MSTATUS_SIE (1L << 1)    // machine-mode interrupt enable.
 
 static inline uint64 r_mstatus() {
     uint64 x;
@@ -40,7 +42,7 @@ static inline uint64 r_sie() {
   return x;
 }
 
-static inline void w_sie(uint64 x) {
+static inline __attribute__((always_inline)) void w_sie(uint64 x) {
   asm volatile("csrw sie, %0" : : "r" (x));
 }
 
@@ -59,7 +61,7 @@ static inline uint64 r_sstatus() {
 }
 
 static inline void w_sstatus(uint64 s) {
-    asm volatile("csrr sstatus, %0" : : "r" (s));
+    asm volatile("csrw sstatus, %0" : : "r" (s));
 }
 
 // Supervisor Address Translation and Protection (satp) Register
@@ -118,6 +120,7 @@ static inline void w_mepc(uint64 x)
 
 // Machine Interrupt Enable
 #define MIE_STIE (1L << 5)  // supervisor timer
+#define MIE_MTIE (1L << 7)  // machine timer
 static inline uint64 r_mie() {
   uint64 x;
   asm volatile("csrr %0, mie" : "=r" (x) );
@@ -166,6 +169,15 @@ static inline void w_stimecmp(uint64 x) {
   asm volatile("csrw stimecmp, %0" : : "r" (x));
 }
 
+static inline uint64 r_mtime() {
+  return *(uint64*)(0x200BFF8);
+}
+
+static inline void w_mtimecmp(uint64 x) {
+  uint64 addr = CLINT_BASE_ADDR + 0x4000 + 8 * r_mhartid();
+  asm volatile("sd %0, 0(%1)" : : "r"(x), "r"(addr));
+}
+
 // machine-mode cycle counter
 static inline uint64 r_time() {
   uint64 x;
@@ -206,12 +218,25 @@ static inline uint64 r_pc() {
   return pc;
 }
 
-static inline void w_stvec(uint64 addr) {
+static inline __attribute__((always_inline)) void w_stvec(uint64 addr) {
   asm volatile ("csrw stvec, %0" : : "r" (addr));
+}
+
+static inline __attribute__((always_inline)) void w_mtvec(uint64 addr) {
+  asm volatile ("csrw mtvec, %0" : : "r" (addr));
 }
 
 static inline uint64 r_scause() {
   uint64 mc;
   asm volatile("csrr %0, scause" : "=r" (mc));
   return mc;
+}
+
+static inline void c_sip_stip() {
+  asm volatile("li t0, 0x10\n"
+               "csrc sip, t0");
+}
+
+static inline __attribute__((always_inline)) void nop() {
+  asm volatile("nop");
 }

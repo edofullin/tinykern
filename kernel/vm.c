@@ -135,6 +135,9 @@ void kvm_init() {
     // map kernel data as rw
     vmmap(k_pagetable, (uint64)KERNEL_TEXT_END, (uint64)KERNEL_TEXT_END, KERNEL_DATA_SIZE, PTE_R | PTE_W);
 
+    // map CLINT
+    vmmap(k_pagetable, CLINT_BASE_ADDR, CLINT_BASE_ADDR, 16 * PAGE_SIZE, PTE_R | PTE_W);
+    
     kvm_map_devices();
 }
 
@@ -150,7 +153,7 @@ void kvm_mmu_enable() {
     );
 
     sfence_vma();
-    kprintf("cpu%d: paging enabled\n", cpuid());
+    kprintf("cpu%d kvm: paging enabled\n", cpuid());
 }
 
 uint64 vm_translate_pa(pagetable pt, uint64 va) {

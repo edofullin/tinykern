@@ -8,8 +8,12 @@
 #include "kalloc.h"
 #include "kio.h"
 #include "panic.h"
+#include "riscv.h"
 #include "uart/uart.h"
 #include "vm.h"
+
+void init_interrupts();
+extern void strap();
 
 void kearly_init() {
     if(cpuid() == 0) {
@@ -20,12 +24,21 @@ void kearly_init() {
         kalloc_init();
         kvm_init();
         kvm_mmu_enable();
+
+        init_interrupts();
     } else {
 
 
     }
 
-    panic("boot complete in %d seconds\n", 10);
+    kprintf("boot completed\n");
     while(1) {}
 }
 
+void init_interrupts() {
+    w_sie(SIE_STIE | SIE_SSIE);
+
+    uint64 stvec_val = ((uint64)strap);
+
+    w_stvec(stvec_val);
+}
