@@ -11,4 +11,8 @@ void panic(char* fmt, ...) {
     kfprintf(fmt, args);
 
     va_end(args);
+
+
+    while(TRUE)
+        ;
 }

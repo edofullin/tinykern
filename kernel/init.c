@@ -6,11 +6,12 @@
 
 #include "cpu.h"
 #include "interrupt.h"
-#include "kalloc.h"
+#include "early_alloc.h"
 #include "kio.h"
 #include "riscv.h"
 #include "uart/uart.h"
 #include "vm.h"
+#include "page_alloc.h"
 
 extern void strap();
 
@@ -20,9 +21,11 @@ void kearly_init() {
         kio_init();
         kprintf("tinykern is booting\n");
 
-        kalloc_init();
+        kearly_alloc_init();
         kvm_init();
         kvm_mmu_enable();
+
+        kalloc_init();
 
         int_init();
         int_init_hart();

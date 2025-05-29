@@ -1,11 +1,13 @@
+#include "early_alloc.h"
 #include "kconfig.h"
+#include "page_alloc.h"
 #include "panic.h"
 #include "riscv.h"
 #include "spinlock.h"
 #include "types.h"
 #include "vm.h"
 #include "kio.h"
-#include "kalloc.h"
+#include "early_alloc.h"
 #include "cpu.h"
 
 #include "uart/ns16550.h"
@@ -23,6 +25,8 @@
 // addresses provided by the linker
 extern char KERNEL_BEGIN[];
 extern char KERNEL_TEXT_END[];
+
+extern bool page_alloc_ready;
 
 pagetable k_pagetable;
 spinlock k_pt_lock;
@@ -48,7 +52,7 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
         if(!setup)
             panic("segmentation fault\n");
         
-        pagetable new_pt = kmallocp();
+        pagetable new_pt = page_alloc_ready ? kalloc_pages(1) : kearly_alloc_page();
         current_pt[pdi] = CONV_PTA_PTE(new_pt);
         current_pt[pdi] |= PTE_V;
         
@@ -107,6 +111,10 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
     kprintf("vmmap: pages %p to %p mapped from %p flags %d\n", va, va + size, pa, flags);
 }
 
+void vmmap_kern(uint64 va, uint64 pa, uint64 size, uint32 flags) {
+    return vmmap(k_pagetable, va, pa, size, flags);
+}
+
 void kvm_map_devices() {
     ns16550* uarts = get_uart_devices();
 
@@ -126,7 +134,7 @@ void kvm_init() {
     kprintf("initializing kernel vm\n");
     spinlock_init(&k_pt_lock, "kpt");
 
-    k_pagetable = kmallocp();
+    k_pagetable = kearly_alloc_page();
     memsetb(k_pagetable, PAGE_SIZE, 0);
 
     // map kernel text

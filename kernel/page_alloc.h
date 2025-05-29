@@ -3,6 +3,4 @@
 #include "types.h"
 
 void kalloc_init();
-
-void* kmallocp();
-void kmfree(void* page);
+void* kalloc_pages(uint32 npages);
