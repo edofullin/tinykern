@@ -34,6 +34,8 @@ void kearly_init() {
 
     }
 
+    kalloc_pages(1);
+    kalloc_pages(2);
     kprintf("boot completed\n");
     while(1) {}
 }

@@ -1,4 +1,5 @@
 #include "interrupt.h"
+#include "cpu.h"
 #include "kconfig.h"
 #include "kio.h"
 #include "panic.h"
@@ -18,7 +19,7 @@ spinlock lk;
 void int_strap2() {
     
     // TODO
-    kprintf("TODO\n");
+    kprintf("TODO hart %d\n", cpuid());
     
     return;
 }
@@ -26,9 +27,13 @@ void int_strap2() {
 void int_init() {
     int_stack = 0;
     spinlock_init(&lk, "int_stack");
+
+    kprintf("interrupt: initializing global\n");
 }
 
 void int_init_hart() {
+    kprintf("interrupt: initializing hart %d\n", cpuid());
+
     w_sie(SIE_SSIE | SIE_SEIE | SIE_STIE);
     w_stvec((uint64)strap);
 }

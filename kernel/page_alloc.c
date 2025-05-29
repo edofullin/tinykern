@@ -22,21 +22,34 @@ static uint64 phyalloc_size; // number of pages
 uint64 order_1_usage[512];
 
 bool is_page_free_index(uint32 idx) {
-    uint32 bitmap = order_1_usage[idx / 64];
-    uint32 bitnum = 64 - (idx % 64); // bit 0 is the one from the left
+    uint64 bitmap = order_1_usage[idx / 64];
+    uint32 bitnum = 63 - (idx % 64); // bit 0 is the one from the left
 
-    return !(bitmap & (1 << bitnum));
+    return !(bitmap & (1ull << bitnum));
 }
 
 void set_page_status_index(uint32 idx, bool allocated) {
-    uint32 bitmap = order_1_usage[idx / 64];
-    uint32 bitnum = 64 - (idx % 64); // bit 0 is the one from the left
+    uint64 bitmap = order_1_usage[idx / 64];
+    uint32 bitnum = 63 - (idx % 64); // bit 0 is the one from the left
 
     order_1_usage[idx / 64] = BIT_SET(bitmap, bitnum, allocated ? 1 : 0);
 }
 
 void* get_page_addr_index(uint32 index) {
     return (void*)(PA_DRAM_START + index * PAGE_SIZE);
+}
+
+uint32 get_free_block_size_index(uint32 idx, uint32 max) {
+    uint32 ret = 0;
+
+    while(ret < max && 
+            ((idx + ret) < phyalloc_size) && 
+            is_page_free_index(idx + ret)
+    ) {
+        ret++;
+    }
+
+    return ret;
 }
 
 void set_kernel_pages_used() {
@@ -68,7 +81,7 @@ void kalloc_init() {
 
     memsetb(order_1_usage, 512 * sizeof(uint64), 0);
 
-    kprintf("page_alloc: initializing from %p size %d pages\n", phyalloc_start, phyalloc_size);
+    kprintf("page_alloc: initializing from %p size %d pages total size %d MiB\n", phyalloc_start, phyalloc_size, phyalloc_size >> (20-12));
 
     // set pages containing .text and .data as already in use
     set_kernel_pages_used();
@@ -79,13 +92,27 @@ void kalloc_init() {
     return;
 }
 
+// NOTE very inefficient... for now
 void* kalloc_pages(uint32 npages) {
+
 
     if(!page_alloc_ready) {
         panic("page allocator not ready");
     }
 
-    
+    for(uint32 i = 0; i < phyalloc_size; ++i) {
+        uint32 free_block_size = get_free_block_size_index(i, npages);
 
+        if(free_block_size >= npages) {
+            kprintf("page_alloc: allocated %d pages from %p [%d]\n", npages, get_page_addr_index(i), i);
+            
+            for(int j = 0; j < npages; ++j) {
+                set_page_status_index(i + j, TRUE);
+            }
+
+            return (void*)get_page_addr_index(i);
+        }
+    }
+    
     return NULL;
 }

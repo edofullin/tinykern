@@ -1,7 +1,7 @@
 #pragma once
 #include "types.h"
 
-#define EARLY_ALLOC_SIZE (1 << 20)
+#define EARLY_ALLOC_SIZE (1ull << 20)
 
 // Pages allocated by the early allocator are not supposed to be freed.
 // The early allocator should only be used until paging is ready and the main allocator is set up. 

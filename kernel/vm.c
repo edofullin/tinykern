@@ -131,7 +131,7 @@ void kvm_map_devices() {
 }
 
 void kvm_init() {
-    kprintf("initializing kernel vm\n");
+    kprintf("kvm: initializing virtual memory\n");
     spinlock_init(&k_pt_lock, "kpt");
 
     k_pagetable = kearly_alloc_page();
@@ -151,7 +151,7 @@ void kvm_init() {
 
 void kvm_mmu_enable() {
 
-    kprintf("cpu%d kvm: turning on paging\n", cpuid());
+    kprintf("kvm: turning on paging for cpu%d\n", cpuid());
     register uint64 satp = MAKE_SATP((uint64)k_pagetable, 0x0, 0x8);
 
     sfence_vma();
@@ -161,7 +161,7 @@ void kvm_mmu_enable() {
     );
 
     sfence_vma();
-    kprintf("cpu%d kvm: paging enabled\n", cpuid());
+    kprintf("kvm: paging enabled for cpu%d\n", cpuid());
 }
 
 uint64 vm_translate_pa(pagetable pt, uint64 va) {
