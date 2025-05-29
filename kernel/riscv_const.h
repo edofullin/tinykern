@@ -1,6 +1,5 @@
 #pragma once
 
-#define CLINT_BASE_ADDR 0x2000000
 
 #define CLINT_BASE_ADDR 0x2000000
 #define CLINT_MTIMECMP_ADDR 0x2004000
