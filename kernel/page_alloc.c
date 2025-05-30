@@ -132,14 +132,13 @@ uint64 kalloc_pages_pa(uint32 npages) {
                 set_page_status_index(i + j, TRUE);
             }
             
-            spinlock_release(&pages_alloc_lock);
-            
             goto finish;
         }
     }
     
 finish:
     
+    spinlock_release(&pages_alloc_lock);
     return pa;
 }
 

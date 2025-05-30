@@ -19,6 +19,9 @@ extern void strap();
 extern void switch_stack(void* new_stack); // defined in init.S
 
 void init_kernel_stack();
+void kinit();
+
+extern pagetable k_pagetable;
 
 
 void kearly_init() {
@@ -33,13 +36,14 @@ void kearly_init() {
 
     // switch from early stack to a bigger stack
     // this function cannot return
-    init_kernel_stack(); 
+    init_kernel_stack();
+    // kinit();
 }
 
 void kinit() {
 
     if(cpuid() == 0) {
-     kvm_init();
+        kvm_init();
         kvm_mmu_enable();
 
         kalloc_init();
@@ -49,6 +53,9 @@ void kinit() {
     }
 
     KLOG_INFO("boot completed");
+    vmmap_kern(0x80200000ull, 0x80200000ull, PAGE_SIZE, PTE_R | PTE_W);
+    
+    vm_debug_translate(k_pagetable, 0x80200000ull);
     while(1) ;
 }
 
