@@ -87,6 +87,7 @@ uint32 kfprintf(char* fmt, va_list va) {
             case 'u':
                 _print_n(va_arg(va, uint64), 10, TRUE);
             case 'p':
+            case 'x':
                 _print_p((void*)va_arg(va, uint64));
                 break;
             case 'c':
@@ -106,7 +107,7 @@ uint32 kfprintf(char* fmt, va_list va) {
     return i;
 }
 
-uint32 KLOG_INFO(char* fmt, ...) {
+uint32 kprintf(char* fmt, ...) {
     va_list va;
     va_start(va, fmt);
 

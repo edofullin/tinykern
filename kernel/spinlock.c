@@ -15,7 +15,7 @@ void spinlock_acquire(spinlock* lock) {
     // TODO disable interrupts
 
     if(lock->locked && lock->cpu == cpuid()) {
-        panic("cpu cannot hold lock twice");
+        panic("cpu cannot hold lock %s twice", lock->name);
         // no exec
     }
 

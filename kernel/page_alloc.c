@@ -14,6 +14,7 @@
 
 bool page_alloc_ready = FALSE;
 
+// defined by kernel.ld
 extern char KERNEL_END[];
 
 static uint64 phyalloc_start;
@@ -23,7 +24,7 @@ static spinlock pages_alloc_lock;
 
 // each bit represents 1 page. 512 elements * 64bit = 32768 pages
 // 32768 * 4096 = 134217728 (128 MiB)
-uint64 order_1_usage[512];
+static uint64 order_1_usage[512];
 
 static bool is_page_free_index(uint32 idx) {
     uint64 bitmap = order_1_usage[idx / 64];
@@ -86,31 +87,34 @@ static void* get_first_free_page() {
 
 void kalloc_init() {
 
+    if(!is_kvm_mmu_enabled()) {
+        panic("page_alloc requires kvm to be available");
+    }
+
     // KERNEL_END is aligned on a page boundary (see kernel.ld)
-    phyalloc_start = PA_DRAM_START;
     phyalloc_size = (PA_DRAM_END - PA_DRAM_START) >> 12;
     spinlock_init(&pages_alloc_lock, "page_allocator");
     spinlock_acquire(&pages_alloc_lock);
 
     memsetb(order_1_usage, 512 * sizeof(uint64), 0);
 
-    KLOG_INFO("page_alloc: initializing from %p size %d pages total size %d MiB", phyalloc_start, phyalloc_size, phyalloc_size >> (20-12));
+    KLOG_INFO("page_alloc: initializing from %x size %d pages total size %d MiB", phyalloc_start, phyalloc_size, phyalloc_size >> (20-12));
 
     // set pages containing .text and .data as already in use
     set_kernel_pages_used();
 
-    KLOG_INFO("page_alloc: first free page at addr %p", get_first_free_page());
+    phyalloc_start = (uint64)get_first_free_page();
+
+    KLOG_INFO("page_alloc: first free page at addr %x", phyalloc_start);
 
     page_alloc_ready = TRUE;
     spinlock_release(&pages_alloc_lock);
     return;
 }
 
-// NOTE very inefficient... for now
-void* kalloc_pages(uint32 npages) {
-    void* ret = NULL;
+uint64 kalloc_pages_pa(uint32 npages) {
+    uint64 pa = NULL;
     spinlock_acquire(&pages_alloc_lock);
-
 
     if(!page_alloc_ready) {
         panic("page allocator not ready");
@@ -120,19 +124,33 @@ void* kalloc_pages(uint32 npages) {
         uint32 free_block_size = get_free_block_size_index(i, npages);
 
         if(free_block_size >= npages) {
-            KLOG_INFO("page_alloc: allocated %d pages from %p [%d]", npages, get_page_addr_index(i), i);
+            pa = (uint64)get_page_addr_index(i);
+
+            KLOG_INFO("page_alloc: allocated %d pages from PA %x", npages, pa);
             
             for(uint32 j = 0; j < npages; ++j) {
                 set_page_status_index(i + j, TRUE);
             }
-
-            ret = get_page_addr_index(i);
+            
+            spinlock_release(&pages_alloc_lock);
+            
             goto finish;
         }
     }
-
-finish:
-    spinlock_release(&pages_alloc_lock);
     
-    return ret;
+finish:
+    
+    return pa;
+}
+
+void* kalloc_pages(uint32 npages) {
+   uint64 pa = kalloc_pages_pa(npages);
+
+   // Kernel pages start from VA_KERNEL_HEAP_START, 
+   // however the first pages containing kernel .text and .data are ignored
+   void* va = (void*)((pa - phyalloc_start) + VA_KERNEL_HEAP_START);
+
+   vmmap_kern_internal((uint64)va, pa, npages * PAGE_SIZE, PTE_R | PTE_W);
+
+   return va;
 }

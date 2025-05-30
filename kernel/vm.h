@@ -18,12 +18,18 @@
 typedef uint64* pagetable;
 
 void kvm_init();
+
+// Unlocked version, do not use
+void vmmap_internal(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags);
+void vmmap_kern_internal(uint64 va, uint64 pa, uint64 size, uint32 flags);
+
 void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags);
 void vmmap_kern(uint64 va, uint64 pa, uint64 size, uint32 flags);
 
 uint64 vm_translate_pa(pagetable pt, uint64 va);
 
 void kvm_mmu_enable();
+bool is_kvm_mmu_enabled();
 
 // internal
 uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup);

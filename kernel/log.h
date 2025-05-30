@@ -1,4 +1,5 @@
 #pragma once
 
-#define KLOG_INFO(fmt, args...) \
-    KLOG_INFO(fmt "\n", ##args)
+#define KLOG_INFO(fmt, ...)             \
+    kprintf(fmt "\n", ##__VA_ARGS__)    \
+

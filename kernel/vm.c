@@ -25,6 +25,7 @@
 
 // addresses provided by the linker
 extern char KERNEL_BEGIN[];
+extern char KERNEL_END[];
 extern char KERNEL_TEXT_END[];
 
 extern bool page_alloc_ready;
@@ -53,7 +54,8 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
         if(!setup)
             panic("segmentation fault");
         
-        pagetable new_pt = page_alloc_ready ? kalloc_pages(1) : kearly_alloc_page();
+        pagetable new_pt = page_alloc_ready ? (void*)kalloc_pages_pa(1) : kearly_alloc_page();
+        // pagetable new_pt = kearly_alloc_page();
         current_pt[pdi] = CONV_PTA_PTE(new_pt);
         current_pt[pdi] |= PTE_V;
         
@@ -67,11 +69,8 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
     return &current_pt[pdi];
 }
 
-/*
- * maps size bytes of virtual memory starting from va 
- * to addresses starting from pa in physical memory
- */
-void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
+// I hate locks
+void vmmap_internal(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
     if(size == 0)
         panic("vmmap: cannot map 0 bytes");
 
@@ -90,7 +89,7 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
     uint64 va_last = va + size - PAGE_SIZE;
     uint64* pte;
 
-    spinlock_acquire(&k_pt_lock);
+
 
     do {
         pte = vm_get_setup_pte(pt, curr_va, TRUE); // address of PTE, creating every intermediate necessary PT
@@ -108,8 +107,24 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
         curr_pa += PAGE_SIZE;
     } while(curr_va <= va_last);
 
+    KLOG_INFO("vmmap: pages from %p to %p (total %d) mapped from %p flags %d", va, va + size, size >> 12, pa, flags);
+}
+
+
+/*
+ * maps size bytes of virtual memory starting from va 
+ * to addresses starting from pa in physical memory
+ */
+void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
+    spinlock_acquire(&k_pt_lock);
+
+    vmmap_internal(pt, va, pa, size, flags);
+
     spinlock_release(&k_pt_lock);
-    KLOG_INFO("vmmap: pages %p to %p mapped from %p flags %d", va, va + size, pa, flags);
+}
+
+void vmmap_kern_internal(uint64 va, uint64 pa, uint64 size, uint32 flags) {
+    return vmmap_internal(k_pagetable, va, pa, size, flags);
 }
 
 void vmmap_kern(uint64 va, uint64 pa, uint64 size, uint32 flags) {
@@ -142,7 +157,10 @@ void kvm_init() {
     vmmap(k_pagetable, (uint64)KERNEL_BEGIN, (uint64)KERNEL_BEGIN, KERNEL_TEXT_END-KERNEL_BEGIN, PTE_R | PTE_X);
 
     // map kernel data as rw
-    vmmap(k_pagetable, (uint64)KERNEL_TEXT_END, (uint64)KERNEL_TEXT_END, KERNEL_DATA_SIZE, PTE_R | PTE_W);
+    vmmap(k_pagetable, (uint64)KERNEL_TEXT_END, (uint64)KERNEL_TEXT_END, KERNEL_END - KERNEL_TEXT_END, PTE_R | PTE_W);
+
+    // map early_alloc as rw
+    vmmap(k_pagetable, (uint64)KERNEL_END, (uint64)KERNEL_END, EARLY_ALLOC_SIZE, PTE_R | PTE_W);
 
     // map CLINT
     vmmap(k_pagetable, CLINT_BASE_ADDR, CLINT_BASE_ADDR, 16 * PAGE_SIZE, PTE_R | PTE_W);
@@ -182,5 +200,9 @@ uint64 vm_translate_pa(pagetable pt, uint64 va) {
 
     return (ppn << 12) | offset;
 
+}
+
+bool is_kvm_mmu_enabled() {
+    return r_satp() ? 1 : 0;
 }
 

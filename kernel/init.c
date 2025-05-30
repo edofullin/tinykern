@@ -35,8 +35,8 @@ void kearly_init() {
 
     }
 
-    kalloc_pages(1);
-    kalloc_pages(2);
-    KLOG_INFO("boot completed");
+    int x = *(int*)kalloc_pages(3);
+
+    KLOG_INFO("boot completed %d", x);
     while(1) {}
 }
