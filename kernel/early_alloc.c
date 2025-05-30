@@ -34,4 +34,9 @@ void* kearly_alloc_get_addr_space() {
 }
 
 
+uint64 kearly_alloc_get_num_alloc_pages() {
+    return (next_free_addr - (void*)KERNEL_END) >> 12;
+}
+
+
 

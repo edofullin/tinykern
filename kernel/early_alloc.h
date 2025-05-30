@@ -9,5 +9,8 @@
 
 
 void kearly_alloc_init();
+
 void* kearly_alloc_get_addr_space();
 void* kearly_alloc_page();
+
+uint64 kearly_alloc_get_num_alloc_pages();
