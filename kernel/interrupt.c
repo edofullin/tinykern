@@ -8,6 +8,7 @@
 #include "types.h"
 #include "riscv.h"
 #include "utils/mem.h"
+#include "log.h"
 
 extern void strap();
 
@@ -19,7 +20,7 @@ spinlock lk;
 void int_strap2() {
     
     // TODO
-    kprintf("TODO hart %d\n", cpuid());
+    KLOG_INFO("TODO hart %d", cpuid());
     
     return;
 }
@@ -28,11 +29,11 @@ void int_init() {
     int_stack = 0;
     spinlock_init(&lk, "int_stack");
 
-    kprintf("interrupt: initializing global\n");
+    KLOG_INFO("interrupt: initializing global");
 }
 
 void int_init_hart() {
-    kprintf("interrupt: initializing hart %d\n", cpuid());
+    KLOG_INFO("interrupt: initializing hart %d", cpuid());
 
     w_sie(SIE_SSIE | SIE_SEIE | SIE_STIE);
     w_stvec((uint64)strap);

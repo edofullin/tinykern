@@ -201,7 +201,7 @@ static inline uint64 r_scause() {
 }
 
 static inline void c_sip_stip() {
-  asm volatile("li t0, 0x10\n"
+  asm volatile("li t0, 0x10"
                "csrc sip, t0");
 }
 

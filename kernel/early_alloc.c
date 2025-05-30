@@ -12,7 +12,7 @@ void* next_free_addr;
 void kearly_alloc_init() {
     next_free_addr = KERNEL_END;
 
-    kprintf("early_alloc: initializing from %p to %p\n", KERNEL_END, (uint64)KERNEL_END + EARLY_ALLOC_SIZE);
+    KLOG_INFO("early_alloc: initializing from %p to %p", KERNEL_END, (uint64)KERNEL_END + EARLY_ALLOC_SIZE);
 }
 
 void* kearly_alloc_page() {

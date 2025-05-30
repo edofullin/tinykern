@@ -12,6 +12,7 @@
 #include "uart/uart.h"
 #include "vm.h"
 #include "page_alloc.h"
+#include "log.h"
 
 extern void strap();
 
@@ -19,7 +20,7 @@ void kearly_init() {
     if(cpuid() == 0) {
         uart_init();
         kio_init();
-        kprintf("tinykern is booting\n");
+        KLOG_INFO("tinykern is booting");
 
         kearly_alloc_init();
         kvm_init();
@@ -36,6 +37,6 @@ void kearly_init() {
 
     kalloc_pages(1);
     kalloc_pages(2);
-    kprintf("boot completed\n");
+    KLOG_INFO("boot completed");
     while(1) {}
 }

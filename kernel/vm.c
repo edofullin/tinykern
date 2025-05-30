@@ -9,6 +9,7 @@
 #include "kio.h"
 #include "early_alloc.h"
 #include "cpu.h"
+#include "log.h"
 
 #include "uart/ns16550.h"
 #include "utils/mem.h"
@@ -41,7 +42,7 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
         pdi = (va >> (9*i)) & ((1 << 9) - 1);
         pte = current_pt[pdi];
 
-        // kprintf("va %p level %d pdi %d pte %p valid %d\n", va, i, pdi, pte, IS_PTE_VALID(pte));
+        // KLOG_INFO("va %p level %d pdi %d pte %p valid %d", va, i, pdi, pte, IS_PTE_VALID(pte));
 
         if(IS_PTE_VALID(pte)) {
             current_pt = CONV_PTE_PTA(pte);
@@ -50,7 +51,7 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
 
         // check if we are allowed to create new page tables
         if(!setup)
-            panic("segmentation fault\n");
+            panic("segmentation fault");
         
         pagetable new_pt = page_alloc_ready ? kalloc_pages(1) : kearly_alloc_page();
         current_pt[pdi] = CONV_PTA_PTE(new_pt);
@@ -61,7 +62,7 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
 
     pdi = (va) & ((1 << 9) - 1); // L0
     pte = current_pt[pdi];
-    // kprintf("va %p level %d pdi %d pte %p valid %d\n", va, 0, pdi, pte, IS_PTE_VALID(pte));
+    // KLOG_INFO("va %p level %d pdi %d pte %p valid %d", va, 0, pdi, pte, IS_PTE_VALID(pte));
 
     return &current_pt[pdi];
 }
@@ -72,16 +73,16 @@ uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
  */
 void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
     if(size == 0)
-        panic("vmmap: cannot map 0 bytes\n");
+        panic("vmmap: cannot map 0 bytes");
 
     if(va % PAGE_SIZE != 0)
-        panic("vmmap: va %p not page aligned\n", va);
+        panic("vmmap: va %p not page aligned", va);
 
     if(pa % PAGE_SIZE != 0)
-        panic("vmmap: pa %p not page aligned\n", pa);
+        panic("vmmap: pa %p not page aligned", pa);
 
     if(size % PAGE_SIZE != 0) {
-        kprintf("vmmap: size %d from va %p not page size, ceiling it to page size\n");
+        KLOG_INFO("vmmap: size %d from va %p not page size, ceiling it to page size");
         size = ((size >> PAGE_SIZE_BITS) + 1) << PAGE_SIZE_BITS;
     }
 
@@ -95,7 +96,7 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
         pte = vm_get_setup_pte(pt, curr_va, TRUE); // address of PTE, creating every intermediate necessary PT
 
         if(!pte)
-            panic("vmmap: segfault\n");
+            panic("vmmap: segfault");
 
         // PTE will point to the physical address
         *pte = 0;
@@ -108,7 +109,7 @@ void vmmap(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flags) {
     } while(curr_va <= va_last);
 
     spinlock_release(&k_pt_lock);
-    kprintf("vmmap: pages %p to %p mapped from %p flags %d\n", va, va + size, pa, flags);
+    KLOG_INFO("vmmap: pages %p to %p mapped from %p flags %d", va, va + size, pa, flags);
 }
 
 void vmmap_kern(uint64 va, uint64 pa, uint64 size, uint32 flags) {
@@ -131,7 +132,7 @@ void kvm_map_devices() {
 }
 
 void kvm_init() {
-    kprintf("kvm: initializing virtual memory\n");
+    KLOG_INFO("kvm: initializing virtual memory");
     spinlock_init(&k_pt_lock, "kpt");
 
     k_pagetable = kearly_alloc_page();
@@ -151,7 +152,7 @@ void kvm_init() {
 
 void kvm_mmu_enable() {
 
-    kprintf("kvm: turning on paging for cpu%d\n", cpuid());
+    KLOG_INFO("kvm: turning on paging for cpu%d", cpuid());
     register uint64 satp = MAKE_SATP((uint64)k_pagetable, 0x0, 0x8);
 
     sfence_vma();
@@ -161,7 +162,7 @@ void kvm_mmu_enable() {
     );
 
     sfence_vma();
-    kprintf("kvm: paging enabled for cpu%d\n", cpuid());
+    KLOG_INFO("kvm: paging enabled for cpu%d", cpuid());
 }
 
 uint64 vm_translate_pa(pagetable pt, uint64 va) {

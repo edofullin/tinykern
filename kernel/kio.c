@@ -106,7 +106,7 @@ uint32 kfprintf(char* fmt, va_list va) {
     return i;
 }
 
-uint32 kprintf(char* fmt, ...) {
+uint32 KLOG_INFO(char* fmt, ...) {
     va_list va;
     va_start(va, fmt);
 
