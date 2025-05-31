@@ -53,9 +53,7 @@ void kinit() {
     }
 
     KLOG_INFO("boot completed");
-    vmmap_kern(0x80200000ull, 0x80200000ull, PAGE_SIZE, PTE_R | PTE_W);
     
-    vm_debug_translate(k_pagetable, 0x80200000ull);
     while(1) ;
 }
 
