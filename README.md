@@ -30,11 +30,13 @@ And then I'll see.
 
 ## Project Structure
 
+```
 ├── .devcontainer/      # Development container for vscode (includes toolchain and qemu)
 ├── kernel/             # Kernel code (C and Assembly)
 ├── scripts/            # Useful scripts
 ├── CMakeLists.txt      # Global CMakeLists
 └── README.md
+```
 
 ## Getting Started
 
