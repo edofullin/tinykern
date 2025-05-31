@@ -23,6 +23,8 @@
 #define CONV_PTE_PTA(pte) ((pagetable)((pte >> 10) << 12))
 #define CONV_PTA_PTE(pta) (((((uint64)pta) >> 12) << 10))
 
+#define PTE_FLAGS(pte) ((pte & ~(1 << 10)))
+
 // addresses provided by the linker
 extern char KERNEL_BEGIN[];
 extern char KERNEL_END[];
@@ -32,6 +34,41 @@ extern bool page_alloc_ready;
 
 pagetable k_pagetable;
 spinlock k_pt_lock;
+
+static void sprintf_pte_flags(uint32 flags, char* out) {
+    uint32 i = 0, scurr = 0;  
+
+    for(int i = 0; i < 8; i++) {
+        uint32 bit = flags & (1 << i);
+
+        if(bit) {
+            switch(i) {
+                case 0:
+                    out[scurr] = 'v'; break;
+                case 1:
+                    out[scurr] = 'r'; break;
+                case 2:
+                    out[scurr] = 'w'; break;
+                case 3:
+                    out[scurr] = 'x'; break;
+                case 4:
+                    out[scurr] = 'u'; break;
+                case 5:
+                    out[scurr] = 'g'; break;
+                case 6:
+                    out[scurr] = 'a'; break;
+                case 7:
+                    out[scurr] = 'd'; break;
+                default:
+                    out[scurr] = '?'; break;
+            }
+
+            scurr++;
+        }
+    }
+
+    out[scurr] = '\0';
+}
 
 uint64* vm_get_setup_pte(pagetable pt, uint64 va, bool setup) {
     va >>= 12; // we can safely ignore the offset to get the PTE
@@ -96,6 +133,7 @@ void vmmap_internal(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flag
     uint64 curr_va = va, curr_pa = pa;
     uint64 va_last = va + size - PAGE_SIZE;
     uint64* pte;
+    char sflags[10];
 
 
 
@@ -115,7 +153,9 @@ void vmmap_internal(pagetable pt, uint64 va, uint64 pa, uint64 size, uint32 flag
         curr_pa += PAGE_SIZE;
     } while(curr_va <= va_last);
 
-    KLOG_INFO("vmmap: pages from %p to %p (total %d) mapped from %p flags %d", va, va + size, size >> 12, pa, flags);
+    sprintf_pte_flags(PTE_FLAGS(*pte), sflags);
+
+    KLOG_INFO("vmmap: pages from %x\tto %x\t(total %d)\tmapped to %x\tflags %s", va, va + size, size >> 12, pa, sflags);
 }
 
 
@@ -219,12 +259,14 @@ void vm_debug_translate(pagetable pt, uint64 va) {
     
     uint64 pte, pdi;
     pagetable current_pt = pt;
+    char sflags[10];
 
     for(ushort i = 2; i > 0; --i) {
         pdi = (va >> (9*i)) & ((1 << 9) - 1);
         pte = current_pt[pdi];
 
-        KLOG_INFO("va %p level %d pdi %d pte %x valid %d", va, i, pdi, CONV_PTE_PTA(pte), IS_PTE_VALID(pte));
+        sprintf_pte_flags(PTE_FLAGS(pte), sflags);
+        KLOG_INFO("va %p level %d pdi %d pte %x flags %s", va, i, pdi, CONV_PTE_PTA(pte), sflags);
 
         if(IS_PTE_VALID(pte)) {
             current_pt = CONV_PTE_PTA(pte);
@@ -238,6 +280,7 @@ void vm_debug_translate(pagetable pt, uint64 va) {
     pdi = (va) & ((1 << 9) - 1); // L0
     pte = current_pt[pdi];
 
-    KLOG_INFO("va %p level 0 pdi %d pte %x valid %d", va, pdi, CONV_PTE_PTA(pte), IS_PTE_VALID(pte));
+    sprintf_pte_flags(PTE_FLAGS(pte), sflags);
+    KLOG_INFO("va %p level 0 pdi %d pte %x flags %s", va, pdi, CONV_PTE_PTA(pte), sflags);
 }
 

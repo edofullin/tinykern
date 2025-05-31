@@ -75,11 +75,11 @@ tinykern is booting
 early_alloc: initializing from 0x80005000 to 0x80105000
 init: setting up kernel stack at addr 0x80005fff
 kvm: initializing virtual memory
-vmmap: pages from 0x80000000 to 0x80002000 (total 2) mapped from 0x80000000 flags 10
-vmmap: pages from 0x80002000 to 0x80005000 (total 3) mapped from 0x80002000 flags 6
-vmmap: pages from 0x80005000 to 0x80105000 (total 256) mapped from 0x80005000 flags 6
-vmmap: pages from 0x2000000 to 0x2010000 (total 16) mapped from 0x2000000 flags 6
-vmmap: pages from 0x10000000 to 0x10001000 (total 1) mapped from 0x10000000 flags 6
+vmmap: pages from 0x80000000    to 0x80002000   (total 2)       mapped to 0x80000000    flags vrx
+vmmap: pages from 0x80002000    to 0x80005000   (total 3)       mapped to 0x80002000    flags vrw
+vmmap: pages from 0x80005000    to 0x80105000   (total 256)     mapped to 0x80005000    flags vrw
+vmmap: pages from 0x2000000     to 0x2010000    (total 16)      mapped to 0x2000000     flags vrw
+vmmap: pages from 0x10000000    to 0x10001000   (total 1)       mapped to 0x10000000    flags vrw
 kvm: turning on paging for cpu0
 kvm: paging enabled for cpu0
 page_alloc: initializing from 0x0 size 32768 pages total size 128 MiB
@@ -87,6 +87,7 @@ page_alloc: first free page at addr 0x80106000
 interrupt: initializing global
 interrupt: initializing hart 0
 boot completed
+TODO hart 0
 TODO hart 0
 TODO hart 0
 TODO hart 0

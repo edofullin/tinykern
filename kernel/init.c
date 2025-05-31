@@ -53,6 +53,8 @@ void kinit() {
     }
 
     KLOG_INFO("boot completed");
+
+    // vm_debug_translate(k_pagetable, 0x80001000ull);
     
     while(1) ;
 }
