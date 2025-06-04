@@ -5,10 +5,6 @@
 extern void kearly_init();
 extern void mtrap();
 
-void timer_early_init();
-
-__attribute__ ((aligned(16)))
-char early_stack[EARLY_STACK_SIZE * NCPU];
 
 void centry() {
     /* we are in business baby */

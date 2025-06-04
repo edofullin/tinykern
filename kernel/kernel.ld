@@ -13,7 +13,7 @@ SECTIONS
 
   PROVIDE(KERNEL_BEGIN = .);
 
-  .text : {
+  .text : AT(0x80000000) {
     *(.text.startup)
     *(.text.*)
   }

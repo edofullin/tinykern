@@ -98,13 +98,12 @@ void kalloc_init() {
 
     memsetb(order_1_usage, 512 * sizeof(uint64), 0);
 
-    KLOG_INFO("page_alloc: initializing from %x size %d pages total size %d MiB", phyalloc_start, phyalloc_size, phyalloc_size >> (20-12));
-
     // set pages containing .text and .data as already in use
     set_kernel_pages_used();
-
+    
     phyalloc_start = (uint64)get_first_free_page();
-
+    
+    KLOG_INFO("page_alloc: initializing from %x size %d pages total size %d MiB", phyalloc_start, phyalloc_size, phyalloc_size >> (20-12));
     KLOG_INFO("page_alloc: first free page at addr %x", phyalloc_start);
 
     page_alloc_ready = TRUE;

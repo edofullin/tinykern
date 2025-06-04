@@ -1,5 +1,9 @@
 #include "kconfig.h"
 
+.section .data.startup
+early_stack: .space EARLY_STACK_SIZE*NCPU
+
+
 .section .text.startup
 .global _entry
 _entry:

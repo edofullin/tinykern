@@ -7,7 +7,7 @@ RUN usermod -aG sudo ubuntu
 # RUN tar -xvf /tmp/toolchain.tar.xz -C /opt && \
 #     rm /tmp/toolchain.tar.xz
 
-RUN wget -O /tmp/toolchain.tar.xz https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2025.01.20/riscv64-glibc-ubuntu-24.04-gcc-nightly-2025.01.20-nightly.tar.xz && \
+RUN wget -O /tmp/toolchain.tar.xz https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2025.05.30/riscv64-musl-ubuntu-24.04-gcc-nightly-2025.05.30-nightly.tar.xz && \
     tar -xvf /tmp/toolchain.tar.xz -C /opt && \
     rm /tmp/toolchain.tar.xz
 

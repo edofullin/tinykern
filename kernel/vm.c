@@ -15,6 +15,9 @@
 #include "utils/mem.h"
 #include "uart/uart.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #define MAKE_SATP(ppn, asid, mode) (((uint64)mode << 60) | ((uint64)asid << 44) | (((uint64)ppn) >> PAGE_SIZE_BITS))
 
 #define IS_PTE_VALID(pte) ((pte & ~(PTE_V)) > 0)
@@ -199,7 +202,7 @@ void kvm_init() {
     spinlock_init(&k_pt_lock, "kpt");
 
     k_pagetable = kearly_alloc_page();
-    memsetb(k_pagetable, PAGE_SIZE, 0);
+    memset(k_pagetable, 0, PAGE_SIZE);
 
     // map kernel text
     vmmap(k_pagetable, (uint64)KERNEL_BEGIN, (uint64)KERNEL_BEGIN, KERNEL_TEXT_END-KERNEL_BEGIN, PTE_R | PTE_X);

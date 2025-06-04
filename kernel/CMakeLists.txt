@@ -1,5 +1,5 @@
 set(K_LINK_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/kernel.ld)
-set(K_LINK_OPTS "-nostdlib")
+set(K_LINK_OPTS "-nostdlib -lc -static")
 set(K_C_FLAGS "-mcmodel=medany")
 
 file(GLOB_RECURSE k_srcs
